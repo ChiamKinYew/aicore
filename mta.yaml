@@ -1,0 +1,54 @@
+---
+_schema-version: '3.1'
+ID: aicore
+version: 1.0.0
+description: "A simple CAP project."
+parameters:
+  enable-parallel-deployments: true
+build-parameters:
+  before-all:
+    - builder: custom
+      commands:
+        - npm ci
+        - npx cds build --production
+modules:
+  - name: aicore-srv
+    type: nodejs
+    path: gen/srv
+    parameters:
+      buildpack: nodejs_buildpack
+      readiness-health-check-type: http
+      readiness-health-check-http-endpoint: /health
+    build-parameters:
+      builder: npm
+    provides:
+      - name: srv-api # required by consumers of CAP services (e.g. approuter)
+        properties:
+          srv-url: ${default-url}
+    requires:
+      - name: cap-aicore-dest
+      
+resources:
+- name: cap-aicore-dest
+  # ------------------------------------------------------------
+  type: org.cloudfoundry.managed-service
+  parameters:
+    service: destination
+    service-plan: lite
+    config:
+      init_data:
+        instance:
+          existing_destinations_policy: ignore
+          destinations:
+            - Name: openai-aicore-api
+              Description: SAP AI Core deployed service
+              URL: https://api.ai.prod.eu-central-1.aws.ml.hana.ondemand.com
+              URL.headers.AI-Resource-Group: default # your resource group
+              URL.headers.Content-Type: application/json
+              Type: HTTP
+              ProxyType: Internet
+              Authentication: OAuth2ClientCredentials
+              tokenServiceURL: https://cbs-ai-business-services.authentication.eu10.hana.ondemand.com/oauth/token # your token service url of the SAP AI Core instance
+              clientId: sb-079b337a-e27f-4a22-88a6-21527dd84c62!b233099|aicore!b540 # enter in cockpit
+              clientSecret: b4c1514c-ede7-4b89-a1b3-2249545c8a54$2nSjwBXthlQejEBGHcT7AXOxFszqojL6Il8O-3cJHTA= # enter in cockpit
+              HTML5.DynamicDestination: true    

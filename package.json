@@ -1,0 +1,36 @@
+{
+  "name": "aicore",
+  "version": "1.0.0",
+  "description": "A simple CAP project.",
+  "repository": "<Add your repository here>",
+  "license": "UNLICENSED",
+  "private": true,
+  "dependencies": {
+    "@sap-cloud-sdk/http-client": "^3.14.0",
+    "@sap-cloud-sdk/resilience": "^3.14.0",
+    "@sap/cds": "^7.8.1",
+    "@sap/xssec": "^3.6.1",
+    "express": "^4",
+    "mta": "^1.0.8"
+  },
+  "devDependencies": {
+    "@cap-js/sqlite": "^1",
+    "@sap/cds-dk": "^7"
+  },
+  "scripts": {
+    "start": "cds-serve",
+    "build": "rimraf resources mta_archives && mbt build --mtar aicore_1.0.0.mtar -m=verbose -j=8",
+    "deploy": "cf deploy mta_archives/aicore_1.0.0.mtar --retries 1"
+  },
+  "cds": {
+    "requires": {
+      "AICoreAzureOpenAIDestination": {
+        "kind": "rest",
+        "credentials": {
+          "destination": "openai-aicore-api",
+          "path": "/v2/inference/deployments/df1def174cb44797"
+        }
+      }
+    }
+  }
+}
